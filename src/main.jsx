@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ArrowDownRight, ArrowUpRight, BriefcaseBusiness, Download, Github, Linkedin, Mail, Menu, MoveUpRight, Sparkles, X } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, BriefcaseBusiness, Download, Github, Linkedin, Mail, Menu, Moon, MoveUpRight, Sparkles, Sun, X } from 'lucide-react';
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
 import './styles.css';
 
@@ -37,18 +37,47 @@ function PhotoFrame() {
   </div>;
 }
 
+function WorkspaceScene() {
+  return <div className="workspace-scene" aria-hidden="true">
+    <div className="scene-stars"><i>✦</i><i>✧</i><i>✦</i><i>+</i><i>✧</i></div>
+    <div className="success-orbit"><span>↗</span></div>
+    <div className="desk-shadow" />
+    <div className="desk-top"><div className="keyboard"><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /><span /></div><div className="mouse" /></div>
+    <div className="monitor"><div className="monitor-screen"><div className="terminal-bar"><b /><b /><b /></div><div className="terminal-code"><span>01</span> <em>const</em> future = <strong>build</strong>();<br /><span>02</span> <em>while</em> (ideas) &#123;<br /><span>03</span>&nbsp;&nbsp;ship(<strong>impact</strong>);<br /><span>04</span> &#125;</div><div className="screen-glow" /></div><div className="monitor-neck" /><div className="monitor-base" /></div>
+    <div className="coffee-cup"><span /></div>
+  </div>;
+}
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('amira-theme') === 'dark');
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
   const heroY = useTransform(scrollYProgress, [0, 0.28], [0, -150]);
 
   useEffect(() => {
+    document.documentElement.dataset.theme = darkMode ? 'dark' : 'light';
+    localStorage.setItem('amira-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  useEffect(() => {
     const sections = document.querySelectorAll('main section, header');
     const observer = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && setActiveSection(entry.target.id)), { rootMargin: '-38% 0px -55% 0px' });
     sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
+    let frame = 0;
+    const moveSpotlight = (event) => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        document.body.style.setProperty('--pointer-x', `${(event.clientX / window.innerWidth) * 100}%`);
+        document.body.style.setProperty('--pointer-y', `${(event.clientY / window.innerHeight) * 100}%`);
+        document.body.style.setProperty('--scene-x', `${((event.clientX / window.innerWidth) - 0.5) * 18}px`);
+        document.body.style.setProperty('--scene-y', `${((event.clientY / window.innerHeight) - 0.5) * 12}px`);
+        frame = 0;
+      });
+    };
+    window.addEventListener('pointermove', moveSpotlight, { passive: true });
+    return () => { observer.disconnect(); window.removeEventListener('pointermove', moveSpotlight); if (frame) cancelAnimationFrame(frame); };
   }, []);
 
   const closeMenu = () => setMenuOpen(false);
@@ -61,6 +90,7 @@ function App() {
         <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
           {['about', 'experience', 'projects', 'contact'].map((id) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? 'true' : undefined} onClick={closeMenu}>{id}</a>)}
           <a className="nav-cv" href="/assets/docs/Amira_Boubaker_CV.pdf" download onClick={closeMenu}>CV <Download size={13} /></a>
+          <button className="theme-toggle" type="button" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`} onClick={() => setDarkMode(!darkMode)}>{darkMode ? <Sun size={15} /> : <Moon size={15} />}<span>{darkMode ? 'Light' : 'Dark'}</span></button>
         </div>
       </div>
     </nav>
@@ -74,7 +104,7 @@ function App() {
             <Reveal delay={0.16}><p className="hero-lede">I build modern web and mobile experiences where thoughtful interfaces meet reliable systems and useful AI.</p></Reveal>
             <Reveal delay={0.23}><div className="hero-actions"><a className="button primary" href="#projects">See the work <ArrowDownRight size={17} /></a><a className="text-link" href="#contact">Let's talk <ArrowUpRight size={16} /></a></div></Reveal>
           </motion.div>
-          <motion.div className="hero-visual" style={{ y: heroY }}><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="code-orb"><span>const</span> ideas = <b>shipped</b>();</div><PhotoFrame /><div className="hero-index">SCROLL TO EXPLORE <ArrowDownRight size={14} /></div></motion.div>
+          <motion.div className="hero-visual" style={{ y: heroY }}><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="code-orb"><span>const</span> ideas = <b>shipped</b>();</div><WorkspaceScene /><PhotoFrame /><div className="hero-index">SCROLL TO EXPLORE <ArrowDownRight size={14} /></div></motion.div>
         </div>
         <div className="hero-marquee"><span>REACT NATIVE</span><span>AI PRODUCTS</span><span>SCALABLE APIS</span><span>GOOD DETAILS</span><span>REACT NATIVE</span></div>
       </header>
