@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import emailjs from '@emailjs/browser';
 import { createRoot } from 'react-dom/client';
 import { ArrowDownRight, ArrowUpRight, BriefcaseBusiness, Download, Github, Linkedin, Mail, Menu, Moon, MoveUpRight, Sparkles, Sun, X } from 'lucide-react';
 import { motion, useScroll, useSpring, useTransform } from 'framer-motion';
@@ -31,7 +32,7 @@ function Reveal({ children, className = '', delay = 0, once = true }) {
 function PhotoFrame() {
   const [hasPhoto, setHasPhoto] = useState(true);
   return <div className="photo-frame" aria-label="Portrait of Amira Boubaker">
-    {hasPhoto && <img src="/assets/images/amira-photo.jpg" alt="Amira Boubaker" onError={() => setHasPhoto(false)} />}
+    {hasPhoto && <img src="/public/assets/images/amira-photo.jpg" alt="Amira Boubaker" onError={() => setHasPhoto(false)} />}
     {!hasPhoto && <div className="photo-fallback"><span>AB</span><small>Add amira-photo.jpg</small></div>}
     <div className="photo-stamp">AMIRA<br /><span>DEV / 26</span></div>
   </div>;
@@ -46,6 +47,55 @@ function WorkspaceScene() {
     <div className="monitor"><div className="monitor-screen"><div className="terminal-bar"><b /><b /><b /></div><div className="terminal-code"><span>01</span> <em>const</em> future = <strong>build</strong>();<br /><span>02</span> <em>while</em> (ideas) &#123;<br /><span>03</span>&nbsp;&nbsp;ship(<strong>impact</strong>);<br /><span>04</span> &#125;</div><div className="screen-glow" /></div><div className="monitor-neck" /><div className="monitor-base" /></div>
     <div className="coffee-cup"><span /></div>
   </div>;
+}
+
+function ContactForm() {
+  const [form, setForm] = useState({ name: '', email: '', message: '', website: '' });
+  const [status, setStatus] = useState('');
+  const [sending, setSending] = useState(false);
+  const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  const submitForm = async (event) => {
+    event.preventDefault();
+    if (form.website || sending) return;
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      setStatus('Please complete your name, email, and message.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      setStatus('Please enter a valid email address.');
+      return;
+    }
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    if (!serviceId || !templateId || !publicKey) {
+      setStatus('Email service is not configured. Add the VITE_EMAILJS values to .env.');
+      return;
+    }
+    setSending(true);
+    setStatus('Sending your message…');
+    try {
+      await emailjs.send(serviceId, templateId, {
+        from_name: form.name.trim(),
+        reply_to: form.email.trim(),
+        subject: `Portfolio enquiry from ${form.name.trim()}`,
+        message: form.message.trim(),
+      }, { publicKey });
+      setForm({ name: '', email: '', message: '', website: '' });
+      setStatus('Message sent. Thank you.');
+    } catch (error) {
+      const providerMessage = error?.text || error?.message || 'EmailJS rejected the request.';
+      setStatus(`Email was not sent: ${providerMessage}`);
+    } finally {
+      setSending(false);
+    }
+  };
+  return <form className="contact-form" id="contact-form" onSubmit={submitForm} noValidate>
+    <div className="form-row"><label htmlFor="contact-name">Name<input id="contact-name" name="name" type="text" value={form.name} onChange={updateField} autoComplete="name" maxLength="80" required /></label><label htmlFor="contact-email">Email<input id="contact-email" name="email" type="email" value={form.email} onChange={updateField} autoComplete="email" maxLength="120" required /></label></div>
+    <label htmlFor="contact-message">Message<textarea id="contact-message" name="message" value={form.message} onChange={updateField} maxLength="2000" required /></label>
+    <label className="form-trap" htmlFor="contact-website">Website<input id="contact-website" name="website" value={form.website} onChange={updateField} tabIndex="-1" autoComplete="off" /></label>
+    <div className="form-submit-row"><button className="button primary" type="submit" disabled={sending}>{sending ? 'Sending…' : 'Send email'} <Mail size={16} /></button><span className="form-status" role="status">{status}</span></div>
+  </form>;
 }
 
 function App() {
@@ -89,7 +139,7 @@ function App() {
         <button className="menu-button" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={20} /> : <Menu size={20} />}</button>
         <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
           {['about', 'experience', 'projects', 'contact'].map((id) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? 'true' : undefined} onClick={closeMenu}>{id}</a>)}
-          <a className="nav-cv" href="/assets/docs/Amira_Boubaker_CV.pdf" download onClick={closeMenu}>CV <Download size={13} /></a>
+          <a className="nav-cv" href="/public/assets/docs/Amira_Boubaker_CV.pdf" download onClick={closeMenu}>CV <Download size={13} /></a>
           <button className="theme-toggle" type="button" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`} onClick={() => setDarkMode(!darkMode)}>{darkMode ? <Sun size={15} /> : <Moon size={15} />}<span>{darkMode ? 'Light' : 'Dark'}</span></button>
         </div>
       </div>
@@ -119,7 +169,7 @@ function App() {
 
       <section className="section education-section" id="education"><div className="section-top"><span className="section-kicker">05 / Education</span><span className="section-line" /></div><Reveal><div className="education-intro"><h2>Still learning.<br /><span>Always building.</span></h2><div><p>Software Engineer Degree</p><strong>Esprim, Monastir</strong><small>Sep 2022 — Jul 2025</small><p className="cert">CI/CD Concepts · le bon développeur, Tunisie</p><small>11 Jul 2026 — 10 Sep 2026</small></div></div></Reveal></section>
 
-      <section className="section contact-section" id="contact"><div className="contact-card noise"><Reveal><span className="section-kicker">06 / Contact</span><h2>Let’s make<br /><em>something useful.</em></h2><p>Have a product, problem, or promising idea? I’d love to hear where it could go.</p><div className="contact-actions"><a className="button primary" href="mailto:amiraboubakeresprims@gmail.com">Send an email <Mail size={16} /></a><a href="/Amira_Boubaker_CV.pdf" download className="button light">Get my CV <Download size={16} /></a></div></Reveal><div className="contact-aside"><span>Based in Tunisia</span><span>Open to good problems</span><div className="socials"><a href="https://github.com/amiraboubaker" aria-label="GitHub" target="_blank" rel="noreferrer"><Github size={18} /></a><a href="https://www.linkedin.com" aria-label="LinkedIn" target="_blank" rel="noreferrer"><Linkedin size={18} /></a></div></div></div></section>
+      <section className="section contact-section" id="contact"><div className="contact-card noise"><Reveal><span className="section-kicker">06 / Contact</span><h2>Let’s make<br /><em>something useful.</em></h2><p>Have a product, problem, or promising idea? I’d love to hear where it could go.</p></Reveal><ContactForm /><div className="contact-aside"><span>Based in Tunisia</span><span>Open to good problems</span><div className="socials"><a href="https://github.com/amiraboubaker" aria-label="GitHub" target="_blank" rel="noreferrer"><Github size={18} /></a><a href="https://www.linkedin.com" aria-label="LinkedIn" target="_blank" rel="noreferrer"><Linkedin size={18} /></a></div></div></div></section>
     </main>
     <footer><span>© 2026 Amira Boubaker</span><span>Designed + built with care</span><a href="#home">Back to top <MoveUpRight size={13} /></a></footer>
   </>;
