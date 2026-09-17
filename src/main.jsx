@@ -32,7 +32,7 @@ function Reveal({ children, className = '', delay = 0, once = true }) {
 function PhotoFrame() {
   const [hasPhoto, setHasPhoto] = useState(true);
   return <div className="photo-frame" aria-label="Portrait of Amira Boubaker">
-    {hasPhoto && <img src="/public/assets/images/amira-photo.jpg" alt="Amira Boubaker" onError={() => setHasPhoto(false)} />}
+    {hasPhoto && <img src="assets/images/amira-photo.jpg" alt="Amira Boubaker" onError={() => setHasPhoto(false)} />}
     {!hasPhoto && <div className="photo-fallback"><span>AB</span><small>Add amira-photo.jpg</small></div>}
     <div className="photo-stamp">AMIRA<br /><span>DEV / 26</span></div>
   </div>;
@@ -139,7 +139,7 @@ function App() {
         <button className="menu-button" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={20} /> : <Menu size={20} />}</button>
         <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
           {['about', 'experience', 'projects', 'contact'].map((id) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? 'true' : undefined} onClick={closeMenu}>{id}</a>)}
-          <a className="nav-cv" href="/public/assets/docs/Amira_Boubaker_CV.pdf" download onClick={closeMenu}>CV <Download size={13} /></a>
+          <a className="nav-cv" href="assets/docs/Amira_Boubaker_CV.pdf" download onClick={closeMenu}>CV <Download size={13} /></a>
           <button className="theme-toggle" type="button" aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`} onClick={() => setDarkMode(!darkMode)}>{darkMode ? <Sun size={15} /> : <Moon size={15} />}<span>{darkMode ? 'Light' : 'Dark'}</span></button>
         </div>
       </div>
