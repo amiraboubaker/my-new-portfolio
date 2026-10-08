@@ -50,15 +50,15 @@ function WorkspaceScene() {
 }
 
 function ContactForm() {
-  const [form, setForm] = useState({ name: '', email: '', message: '', website: '' });
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '', website: '' });
   const [status, setStatus] = useState('');
   const [sending, setSending] = useState(false);
   const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   const submitForm = async (event) => {
     event.preventDefault();
     if (form.website || sending) return;
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      setStatus('Please complete your name, email, and message.');
+    if (!form.name.trim() || !form.email.trim() || !form.subject.trim() || !form.message.trim()) {
+      setStatus('Please complete your name, email, subject, and message.');
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -68,8 +68,13 @@ function ContactForm() {
     const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
     const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
     const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+    const placeholders = ['your_service_id', 'your_template_id', 'your_public_key'];
     if (!serviceId || !templateId || !publicKey) {
       setStatus('Email service is not configured. Add the VITE_EMAILJS values to .env.');
+      return;
+    }
+    if (placeholders.includes(serviceId) || placeholders.includes(templateId) || placeholders.includes(publicKey)) {
+      setStatus('EmailJS is using placeholder values. Replace them in .env with real values from https://dashboard.emailjs.com/admin');
       return;
     }
     setSending(true);
@@ -78,20 +83,25 @@ function ContactForm() {
       await emailjs.send(serviceId, templateId, {
         from_name: form.name.trim(),
         reply_to: form.email.trim(),
-        subject: `Portfolio enquiry from ${form.name.trim()}`,
+        subject: form.subject.trim(),
         message: form.message.trim(),
       }, { publicKey });
-      setForm({ name: '', email: '', message: '', website: '' });
+      setForm({ name: '', email: '', subject: '', message: '', website: '' });
       setStatus('Message sent. Thank you.');
     } catch (error) {
       const providerMessage = error?.text || error?.message || 'EmailJS rejected the request.';
-      setStatus(`Email was not sent: ${providerMessage}`);
+      if (providerMessage.toLowerCase().includes('service id') || providerMessage.toLowerCase().includes('not found')) {
+        setStatus('Email was not sent: The service ID was not found. Verify VITE_EMAILJS_SERVICE_ID matches a service in your EmailJS dashboard at https://dashboard.emailjs.com/admin, and that the service is linked to your public key.');
+      } else {
+        setStatus(`Email was not sent: ${providerMessage}`);
+      }
     } finally {
       setSending(false);
     }
   };
   return <form className="contact-form" id="contact-form" onSubmit={submitForm} noValidate>
     <div className="form-row"><label htmlFor="contact-name">Name<input id="contact-name" name="name" type="text" value={form.name} onChange={updateField} autoComplete="name" maxLength="80" required /></label><label htmlFor="contact-email">Email<input id="contact-email" name="email" type="email" value={form.email} onChange={updateField} autoComplete="email" maxLength="120" required /></label></div>
+    <label htmlFor="contact-subject">Subject<input id="contact-subject" name="subject" type="text" value={form.subject} onChange={updateField} maxLength="120" required /></label>
     <label htmlFor="contact-message">Message<textarea id="contact-message" name="message" value={form.message} onChange={updateField} maxLength="2000" required /></label>
     <label className="form-trap" htmlFor="contact-website">Website<input id="contact-website" name="website" value={form.website} onChange={updateField} tabIndex="-1" autoComplete="off" /></label>
     <div className="form-submit-row"><button className="button primary" type="submit" disabled={sending}>{sending ? 'Sending…' : 'Send email'} <Mail size={16} /></button><span className="form-status" role="status">{status}</span></div>

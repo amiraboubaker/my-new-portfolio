@@ -16,6 +16,7 @@ Copy this into the EmailJS template body:
 ```text
 New portfolio enquiry
 
+Subject: {{subject}}
 Name: {{from_name}}
 Email: {{reply_to}}
 
