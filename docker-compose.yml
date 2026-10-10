@@ -1,0 +1,14 @@
+name: portfolio
+
+services:
+  web:
+    build: .
+    image: my-portfolio
+    container_name: portfolio
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - VITE_EMAILJS_SERVICE_ID=${VITE_EMAILJS_SERVICE_ID}
+      - VITE_EMAILJS_TEMPLATE_ID=${VITE_EMAILJS_TEMPLATE_ID}
+      - VITE_EMAILJS_PUBLIC_KEY=${VITE_EMAILJS_PUBLIC_KEY}
